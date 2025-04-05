@@ -15,6 +15,8 @@ import Modal from "./components/Modal";
 import UserProfie from "./components/UserProfile";
 import MyFolliwngPost from "./screens/MyFollowingPost";
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import PostFeed from "./components/PostFeed";
+import posts from "./data/posts";
 
 function App() {
   const [userLogin, setUserLogin] = useState(false);
@@ -22,22 +24,22 @@ function App() {
   return (
     <BrowserRouter>
       <div className="App">
-      <GoogleOAuthProvider clientId="852972554695-d2h4p1s3mqdn7ojl61ue21c9melgnjc5.apps.googleusercontent.com">
-        <LoginContext.Provider value={{ setUserLogin, setModalOpen }}>
-          <Navbar login={userLogin} />
-          <Routes>
-            <Route path="/" element={<Home />}></Route>
-            <Route path="/signup" element={<SignUp />}></Route>
-            <Route path="/signin" element={<SignIn />}></Route>
-            <Route exact path="/profile" element={<Profie />}></Route>
-            <Route path="/createPost" element={<Createpost />}></Route>
-            <Route path="/profile/:userid" element={<UserProfie />}></Route>
-            <Route path="/followingpost" element={<MyFolliwngPost />}></Route>
-          </Routes>
-          <ToastContainer theme="dark" />
-
-          {modalOpen && <Modal setModalOpen={setModalOpen}></Modal>}
-        </LoginContext.Provider>
+        <GoogleOAuthProvider clientId="852972554695-d2h4p1s3mqdn7ojl61ue21c9melgnjc5.apps.googleusercontent.com">
+          <LoginContext.Provider value={{ setUserLogin, setModalOpen }}>
+            <Navbar login={userLogin} />
+            <Routes>
+              {/* Render PostFeed only on the Home page */}
+              <Route path="/" element={<Home><PostFeed posts={posts} /></Home>} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/signin" element={<SignIn />} />
+              <Route exact path="/profile" element={<Profie />} />
+              <Route path="/createPost" element={<Createpost />} />
+              <Route path="/profile/:userid" element={<UserProfie />} />
+              <Route path="/followingpost" element={<MyFolliwngPost />} />
+            </Routes>
+            <ToastContainer theme="dark" />
+            {modalOpen && <Modal setModalOpen={setModalOpen} />}
+          </LoginContext.Provider>
         </GoogleOAuthProvider>
       </div>
     </BrowserRouter>

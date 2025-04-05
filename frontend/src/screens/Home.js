@@ -3,18 +3,19 @@ import "../css/Home.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
+import ads from "../data/ads";
+import AdComponent from "../components/AdComponent";
 
 export default function Home() {
-  var picLink = "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"
+  const picLink = "https://cdn-icons-png.flaticon.com/128/3177/3177440.png";
   const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [comment, setComment] = useState("");
   const [show, setShow] = useState(false);
   const [item, setItem] = useState([]);
-  let limit = 10
-  let skip = 0
+  let limit = 10;
+  let skip = 0;
 
-  // Toast functions
   const notifyA = (msg) => toast.error(msg);
   const notifyB = (msg) => toast.success(msg);
 
@@ -23,17 +24,14 @@ export default function Home() {
     if (!token) {
       navigate("./signup");
     }
-fetchPosts()
-
-window.addEventListener("scroll",handleScroll)
-return ()=>{
-  window.removeEventListener("scroll",handleScroll)
-}
-    
+    fetchPosts();
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
-  const fetchPosts = ()=>{
-    // Fetching all posts
+  const fetchPosts = () => {
     fetch(`/allposts?limit=${limit}&skip=${skip}`, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("jwt"),
@@ -41,20 +39,21 @@ return ()=>{
     })
       .then((res) => res.json())
       .then((result) => {
-        console.log(result);
-        setData((data)=>[...data, ...result]);
+        setData((prevData) => [...prevData, ...result]);
       })
       .catch((err) => console.log(err));
-  }
+  };
 
-  const handleScroll = ()=>{
-    if(document.documentElement.clientHeight + window.pageYOffset >= document.documentElement.scrollHeight){
-      skip = skip + 10
-      fetchPosts()
+  const handleScroll = () => {
+    if (
+      document.documentElement.clientHeight + window.pageYOffset >=
+      document.documentElement.scrollHeight
+    ) {
+      skip = skip + 10;
+      fetchPosts();
     }
-  }
+  };
 
-  // to show and hide comments
   const toggleComment = (posts) => {
     if (show) {
       setShow(false);
@@ -71,23 +70,17 @@ return ()=>{
         "Content-Type": "application/json",
         Authorization: "Bearer " + localStorage.getItem("jwt"),
       },
-      body: JSON.stringify({
-        postId: id,
-      }),
+      body: JSON.stringify({ postId: id }),
     })
       .then((res) => res.json())
       .then((result) => {
-        const newData = data.map((posts) => {
-          if (posts._id == result._id) {
-            return result;
-          } else {
-            return posts;
-          }
-        });
+        const newData = data.map((posts) =>
+          posts._id === result._id ? result : posts
+        );
         setData(newData);
-        console.log(result);
       });
   };
+
   const unlikePost = (id) => {
     fetch("/unlike", {
       method: "put",
@@ -95,25 +88,17 @@ return ()=>{
         "Content-Type": "application/json",
         Authorization: "Bearer " + localStorage.getItem("jwt"),
       },
-      body: JSON.stringify({
-        postId: id,
-      }),
+      body: JSON.stringify({ postId: id }),
     })
       .then((res) => res.json())
       .then((result) => {
-        const newData = data.map((posts) => {
-          if (posts._id == result._id) {
-            return result;
-          } else {
-            return posts;
-          }
-        });
+        const newData = data.map((posts) =>
+          posts._id === result._id ? result : posts
+        );
         setData(newData);
-        console.log(result);
       });
   };
 
-  // function to make comment
   const makeComment = (text, id) => {
     fetch("/comment", {
       method: "put",
@@ -121,34 +106,24 @@ return ()=>{
         "Content-Type": "application/json",
         Authorization: "Bearer " + localStorage.getItem("jwt"),
       },
-      body: JSON.stringify({
-        text: text,
-        postId: id,
-      }),
+      body: JSON.stringify({ text, postId: id }),
     })
       .then((res) => res.json())
       .then((result) => {
-        const newData = data.map((posts) => {
-          if (posts._id == result._id) {
-            return result;
-          } else {
-            return posts;
-          }
-        });
+        const newData = data.map((posts) =>
+          posts._id === result._id ? result : posts
+        );
         setData(newData);
         setComment("");
         notifyB("Comment posted");
-        console.log(result);
       });
   };
 
   return (
     <div className="home">
-      {/* card */}
-      {data.map((posts) => {
-        return (
-          <div className="card">
-            {/* card header */}
+      {data.map((posts, index) => {
+        const postElement = (
+          <div className="card" key={`post-${posts._id}`}>
             <div className="card-header">
               <div className="card-pic">
                 <img
@@ -162,72 +137,69 @@ return ()=>{
                 </Link>
               </h5>
             </div>
-            {/* card image */}
+
             <div className="card-image">
               <img src={posts.photo} alt="" />
             </div>
 
-            {/* card content */}
             <div className="card-content">
               {posts.likes.includes(
                 JSON.parse(localStorage.getItem("user"))._id
               ) ? (
                 <span
                   className="material-symbols-outlined material-symbols-outlined-red"
-                  onClick={() => {
-                    unlikePost(posts._id);
-                  }}
+                  onClick={() => unlikePost(posts._id)}
                 >
                   favorite
                 </span>
               ) : (
                 <span
                   className="material-symbols-outlined"
-                  onClick={() => {
-                    likePost(posts._id);
-                  }}
+                  onClick={() => likePost(posts._id)}
                 >
                   favorite
                 </span>
               )}
 
               <p>{posts.likes.length} Likes</p>
-              <p>{posts.body} </p>
+              <p>{posts.body}</p>
               <p
                 style={{ fontWeight: "bold", cursor: "pointer" }}
-                onClick={() => {
-                  toggleComment(posts);
-                }}
+                onClick={() => toggleComment(posts)}
               >
                 View all comments
               </p>
             </div>
 
-            {/* add Comment */}
             <div className="add-comment">
               <span className="material-symbols-outlined">mood</span>
               <input
                 type="text"
                 placeholder="Add a comment"
                 value={comment}
-                onChange={(e) => {
-                  setComment(e.target.value);
-                }}
+                onChange={(e) => setComment(e.target.value)}
               />
               <button
                 className="comment"
-                onClick={() => {
-                  makeComment(comment, posts._id);
-                }}
+                onClick={() => makeComment(comment, posts._id)}
               >
                 Post
               </button>
             </div>
           </div>
         );
+
+        const shouldShowAd = (index + 1) % 2 === 0;
+        const ad = ads[Math.floor(index / 2) % ads.length];
+
+        return (
+          <React.Fragment key={`wrap-${posts._id}`}>
+            {postElement}
+            {shouldShowAd && <AdComponent ad={ad} key={`ad-${ad.id}-${index}`} />}
+          </React.Fragment>
+        );
       })}
 
-      {/* show Comment */}
       {show && (
         <div className="showComment">
           <div className="container">
@@ -235,56 +207,42 @@ return ()=>{
               <img src={item.photo} alt="" />
             </div>
             <div className="details">
-              {/* card header */}
               <div
                 className="card-header"
                 style={{ borderBottom: "1px solid #00000029" }}
               >
                 <div className="card-pic">
-                  <img
-                    src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8cGVyc29ufGVufDB8MnwwfHw%3D&auto=format&fit=crop&w=500&q=60"
-                    alt=""
-                  />
+                  <img src={item.postedBy.Photo || picLink} alt="" />
                 </div>
                 <h5>{item.postedBy.name}</h5>
               </div>
 
-              {/* commentSection */}
               <div
                 className="comment-section"
                 style={{ borderBottom: "1px solid #00000029" }}
               >
-                {item.comments.map((comment) => {
-                  return (
-                    <p className="comm">
-                      <span
-                        className="commenter"
-                        style={{ fontWeight: "bolder" }}
-                      >
-                        {comment.postedBy.name}{" "}
-                      </span>
-                      <span className="commentText">{comment.comment}</span>
-                    </p>
-                  );
-                })}
+                {item.comments.map((comment) => (
+                  <p className="comm" key={comment._id}>
+                    <span className="commenter" style={{ fontWeight: "bolder" }}>
+                      {comment.postedBy.name}
+                    </span>
+                    <span className="commentText">{comment.comment}</span>
+                  </p>
+                ))}
               </div>
 
-              {/* card content */}
               <div className="card-content">
                 <p>{item.likes.length} Likes</p>
                 <p>{item.body}</p>
               </div>
 
-              {/* add Comment */}
               <div className="add-comment">
                 <span className="material-symbols-outlined">mood</span>
                 <input
                   type="text"
                   placeholder="Add a comment"
                   value={comment}
-                  onChange={(e) => {
-                    setComment(e.target.value);
-                  }}
+                  onChange={(e) => setComment(e.target.value)}
                 />
                 <button
                   className="comment"
@@ -298,12 +256,7 @@ return ()=>{
               </div>
             </div>
           </div>
-          <div
-            className="close-comment"
-            onClick={() => {
-              toggleComment();
-            }}
-          >
+          <div className="close-comment" onClick={toggleComment}>
             <span className="material-symbols-outlined material-symbols-outlined-comment">
               close
             </span>
